@@ -20,6 +20,13 @@ export default {
       // 讓網頁確認這個功能有沒有啟用
       return new Response('ok', { headers: { 'x-tn-ics': '1', 'cache-control': 'no-store' } });
     }
-    return env.ASSETS.fetch(request);
+    const res = await env.ASSETS.fetch(request);
+    // 圖片很少改，讓手機快取一週；網頁本體每次都檢查有沒有新版
+    if (/\.(webp|png|jpg|svg)$/.test(url.pathname) && res.ok) {
+      const r = new Response(res.body, res);
+      r.headers.set('cache-control', 'public, max-age=604800');
+      return r;
+    }
+    return res;
   },
 };
